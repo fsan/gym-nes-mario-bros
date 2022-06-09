@@ -380,15 +380,23 @@ class NESEnv(gym.Env, utils.EzPickle):
                     self.reward = int(body[2][:2], 16)
                     # print("(from Python) self.reward =", self.reward)  # DEBUG
                     # print(body[2][3:9])  # DEBUG
-                    self.score = int(body[2][3:9])
                     # print("(from Python) score =", self.score)  # DEBUG
-                    life = int(body[2][10:12], 16)
-                    # print("(from Python) life =", life)  # DEBUG
+                    self.score = int(body[2][3:9])
+                    # print("(from Python) life =", body[2][10:12])  # DEBUG
+                    life = body[2][10:12]
+                    if len(life) > 0:
+                        life = int(body[2][10:12], 16)
+                    else:
+                        life = 0
                     if life != self.life:
                         if life < self.life:  # cannot win life except cheating
                             self.reward += self.delta_reward_by_life * (life - self.life)
                         self.life = life
-                    level = int(body[2][13:15], 16)
+                    level = body[2][13:15]
+                    if len(level)>0:
+                        level = int(body[2][13:15], 16)
+                    else:
+                        level = 0
                     # print("(from Python) level =", level)  # DEBUG
                     if level != self.level:
                         if level > self.level:  # cannot lose level
