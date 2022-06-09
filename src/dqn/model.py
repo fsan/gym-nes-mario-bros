@@ -10,14 +10,16 @@ import os
 from collections import deque
 import numpy as np
 
-import keras
-from keras.layers.convolutional import Conv2D
-from keras.layers.core import Flatten
-from keras.layers import Dense, Input, MaxPooling2D
-from keras.models import Model, load_model, save_model
-from keras import optimizers
+import tensorflow as tf
+
+
+from tensorflow.keras.layers import Conv2D, Flatten
+from tensorflow.keras.layers import Dense, Input, MaxPooling2D
+from tensorflow.keras.models import Model, load_model, save_model
+from tensorflow.keras import optimizers
+from tensorflow.keras.optimizers import Adam
 # from keras.callbacks import TensorBoard
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 from .replay_buffer import ReplayBuffer
 from .utils import LinearSchedule, PiecewiseSchedule
@@ -127,7 +129,7 @@ class DoubleDQN(object):
         # used to choose action
         self.base_model = q_model(input_shape, num_actions)
         if optimizer is None:
-            optimizer = optimizers.adam(clipnorm=10, lr=1e-4, decay=1e-6, epsilon=1e-4)
+            optimizer = Adam(clipnorm=10, lr=1e-4, decay=1e-6, epsilon=1e-4)
         self.base_model.compile(optimizer=optimizer, loss='mse')
         # used to estimate q values
         self.target_model = q_model(input_shape, num_actions)
@@ -147,10 +149,10 @@ class DoubleDQN(object):
 
     def plot_model(self, base_model_path=None, target_model_path=None):
         # https://keras.io/utils/#plot_model
-        if base_model_path is None: base_model_path = "dqn_base.svg"
-        keras.utils.plot_model(self.base_model, to_file=base_model_path, show_shapes=True, show_layer_names=True)
-        if target_model_path is None: target_model_path = "dqn_target.svg"
-        keras.utils.plot_model(self.target_model, to_file=target_model_path, show_shapes=True, show_layer_names=True)
+        if base_model_path is None: base_model_path = "dqn_base.png"
+        tf.keras.utils.plot_model(self.base_model, to_file=base_model_path, show_shapes=True, show_layer_names=True)
+        if target_model_path is None: target_model_path = "dqn_target.png"
+        tf.keras.utils.plot_model(self.target_model, to_file=target_model_path, show_shapes=True, show_layer_names=True)
 
     # https://keras.io/models/about-keras-models/
 
@@ -211,7 +213,8 @@ class DoubleDQN(object):
 
     def get_learning_rate(self):
         optimizer = self.base_model.optimizer
-        lr = K.eval(optimizer.lr * (1. / (1. + optimizer.decay * K.cast(optimizer.iterations, K.tf.float32))))
+        # lr = tf.eval(optimizer.lr * (1. / (1. + optimizer.decay * tf.cast(optimizer.iterations, tf.float32))))
+        lr = tf.keras.backend.eval(optimizer.lr * (1. / (1. + optimizer.decay * tf.cast(optimizer.iterations, tf.float32))))
         return lr
 
     def get_avg_loss(self):
